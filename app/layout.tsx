@@ -12,7 +12,7 @@ const permanentMarker = Permanent_Marker({
 })
 
 export const metadata = {
-  title: "Vercel Blob upload",
+  title: "VBU (Verce Blob upload)",
   description: "A file upload center built with Vercel Blob",
   icons: {
     icon: "/favicon.ico",
