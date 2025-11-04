@@ -9,6 +9,12 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { FileDocumentIcon } from "./file-document-icon"
+import { useView } from "./ui/view-provider"
+
+function isImage(filename: string) {
+  const ext = filename.split('.').pop()?.toLowerCase() || ''
+  return ['png','jpg','jpeg','gif','webp','avif','svg'].includes(ext)
+}
 
 interface FileItemProps {
   url: string
@@ -20,9 +26,11 @@ export function FileList({
   files,
   onDelete,
 }: {
-  files: { url: string; filename: string }[]
+  files: { url: string; filename: string; category?: string }[]
   onDelete: (url: string) => void
 }) {
+  const { mode } = useView()
+
   if (files.length === 0) {
     return (
       <div className="text-center py-12">
@@ -31,16 +39,30 @@ export function FileList({
     )
   }
 
+  if (mode === 'list') {
+    return (
+      <div className="flex flex-col divide-y divide-nord-3/50">
+        {files.map((file) => (
+          <div key={file.url} className="py-3">
+            <FileItem url={file.url} filename={file.filename} onDelete={onDelete} category={file.category} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // grid or compact
+  const cols = mode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className={`grid gap-4 ${cols}`}>
       {files.map((file) => (
-        <FileItem key={file.url} url={file.url} filename={file.filename} onDelete={onDelete} />
+        <FileItem key={file.url} url={file.url} filename={file.filename} onDelete={onDelete} category={file.category} />
       ))}
     </div>
   )
 }
-
-function FileItem({ url, filename, onDelete }: FileItemProps) {
+        function FileItem({ url, filename, onDelete, visibility, category, shared }: FileItemProps & { visibility?: string; category?: string; shared?: boolean }) {
   const [copied, setCopied] = useState(false)
 
   const copyToClipboard = async () => {
@@ -59,7 +81,8 @@ function FileItem({ url, filename, onDelete }: FileItemProps) {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/delete?url=${encodeURIComponent(url)}`, {
+      let deleteUrl = `/api/delete?url=${encodeURIComponent(url)}`
+      const response = await fetch(deleteUrl, {
         method: "DELETE",
       })
 
@@ -81,52 +104,111 @@ function FileItem({ url, filename, onDelete }: FileItemProps) {
       })
     }
   }
+  const { mode } = useView()
+
+  const image = isImage(filename)
+  const thumbSize = mode === 'compact' ? 28 : 80
 
   return (
-    <Card className="file-card">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-nord-2 flex items-center justify-center shadow-sm">
-            <FileDocumentIcon className="h-6 w-6 text-nord-8" />
+    <Card className={`file-card ${mode === 'compact' ? 'p-2' : ''}`}>
+      <CardContent className={`p-4 ${mode === 'compact' ? 'py-2 px-3' : ''}`}>
+        <div className={`flex items-center gap-3 ${mode === 'list' ? 'justify-between' : ''}`}>
+          <div className={`flex items-center gap-3 ${mode === 'list' ? 'flex-1' : ''}`}>
+            <div className={`rounded-lg bg-nord-2 flex items-center justify-center shadow-sm`} style={{ width: thumbSize, height: thumbSize }}>
+              {image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={url} alt={filename} className="object-cover rounded" style={{ width: thumbSize, height: thumbSize }} />
+              ) : (
+                <FileDocumentIcon className="h-6 w-6 text-nord-8" />
+              )}
+            </div>
+            <div className={`overflow-hidden ${mode === 'compact' ? 'text-sm' : ''}`}>
+              <p className={`font-medium truncate ${mode === 'compact' ? 'text-sm' : ''}`} title={filename}>
+                {filename}
+              </p>
+              {mode !== 'compact' && (
+                <p className="text-xs text-muted-foreground truncate" title={url}>
+                  {url.split("/").pop()}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="overflow-hidden">
-            <p className="font-medium truncate" title={filename}>
-              {filename}
-            </p>
-            <p className="text-xs text-muted-foreground truncate" title={url}>
-              {url.split("/").pop()}
-            </p>
-          </div>
+
+          {mode === 'list' && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+                onClick={copyToClipboard}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <CustomCopyIcon className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+                onClick={async () => {
+                  try {
+                    window.open(url, "_blank")
+                  } catch (err) {
+                    console.error("Download error:", err)
+                    toast({ title: "Download failed", description: "Could not fetch file.", variant: "destructive" })
+                  }
+                }}
+              >
+                <CustomDownloadIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-nord-11 hover:text-nord-11 hover:bg-nord-2/50"
+                onClick={handleDelete}
+              >
+                <CustomTrashIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between">
-        <div className="flex gap-2">
+
+      {mode !== 'list' && (
+        <CardFooter className="p-2 pt-0 flex justify-between">
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+              onClick={copyToClipboard}
+            >
+              {copied ? <Check className="h-4 w-4" /> : <CustomCopyIcon className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+              onClick={async () => {
+                try {
+                  window.open(url, "_blank")
+                } catch (err) {
+                  console.error("Download error:", err)
+                  toast({ title: "Download failed", description: "Could not fetch file.", variant: "destructive" })
+                }
+              }}
+            >
+              <CustomDownloadIcon className="h-4 w-4" />
+            </Button>
+          </div>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
-            onClick={copyToClipboard}
+            className="h-8 px-2 text-nord-11 hover:text-nord-11 hover:bg-nord-2/50"
+            onClick={handleDelete}
           >
-            {copied ? <Check className="h-4 w-4" /> : <CustomCopyIcon className="h-4 w-4" />}
+            <CustomTrashIcon className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
-            onClick={() => window.open(url, "_blank")}
-          >
-            <CustomDownloadIcon className="h-4 w-4" />
-          </Button>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2 text-nord-11 hover:text-nord-11 hover:bg-nord-2/50"
-          onClick={handleDelete}
-        >
-          <CustomTrashIcon className="h-4 w-4" />
-        </Button>
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   )
 }

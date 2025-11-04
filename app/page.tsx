@@ -16,6 +16,9 @@ import { HelpButton } from "@/components/help-popup"
 interface FileInfo {
   url: string
   filename: string
+  visibility?: string
+  category?: string
+  shared?: boolean
 }
 
 export default function Home() {
@@ -38,6 +41,8 @@ export default function Home() {
           data.files.map((file: any) => ({
             url: file.url,
             filename: file.filename,
+            visibility: file.visibility,
+            category: file.category,
           })),
         )
       }
@@ -49,7 +54,8 @@ export default function Home() {
   }
 
   const handleUploadComplete = (url: string, filename: string) => {
-    setFiles((prev) => [...prev, { url, filename }])
+    // Refresh list to pick up category/protection metadata
+    fetchFiles()
     setSelectedFile({ url, filename })
   }
 

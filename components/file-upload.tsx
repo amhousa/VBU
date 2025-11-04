@@ -17,6 +17,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  // visibility removed — all uploads produce public links
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -67,7 +68,10 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
       const formData = new FormData()
       formData.append("file", selectedFile)
 
-      const response = await fetch(`/api/upload?filename=${encodeURIComponent(selectedFile.name)}`, {
+  const params = new URLSearchParams()
+  params.set("filename", selectedFile.name)
+
+      const response = await fetch(`/api/upload?${params.toString()}`, {
         method: "POST",
         body: selectedFile,
       })
@@ -150,6 +154,8 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                   <p className="text-sm text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
                 </div>
               </div>
+
+                      {/* Visibility removed — uploads are public links */}
 
               {isUploading ? (
                 <div className="w-full max-w-md">
