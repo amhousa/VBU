@@ -22,6 +22,7 @@ export async function GET(): Promise<NextResponse> {
         size: (blob as any).size || meta?.size,
         uploadedAt: (blob as any).uploadedAt || meta?.uploadedAt,
         category: meta?.category || pathname.split("/")[0] || null,
+        ownerId: meta?.ownerId,
       }
     })
 

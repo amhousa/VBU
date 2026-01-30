@@ -10,7 +10,7 @@ export interface FileMeta {
   size?: number
   uploadedAt?: string
   category?: string
-  // Note: visibility/share removed — all uploads return public links
+  ownerId?: string // To associate files with users
 }
 
 const FILE_PATH = path.join(process.cwd(), "data", "files.json")
@@ -30,8 +30,14 @@ async function writeStore(files: FileMeta[]) {
   await fs.writeFile(FILE_PATH, JSON.stringify(files, null, 2), "utf8")
 }
 
-export async function getAllFiles(): Promise<FileMeta[]> {
-  return readStore()
+export async function getAllFiles(ownerId?: string): Promise<FileMeta[]> {
+  const files = await readStore()
+  if (ownerId) {
+    return files.filter(f => f.ownerId === ownerId)
+  }
+  // For public access, you might want to return only public files
+  // but for now, we'll assume an admin/full view if no ownerId is given.
+  return files
 }
 
 export async function addFile(meta: FileMeta): Promise<void> {
@@ -45,8 +51,14 @@ export async function findFileByPath(pathname: string): Promise<FileMeta | undef
   return files.find((f) => f.pathname === pathname || f.url === pathname)
 }
 
-export async function removeFileByPath(pathname: string): Promise<void> {
+export async function removeFileByPath(pathname: string, ownerId?: string): Promise<void> {
   let files = await readStore()
+  const fileToDelete = files.find(f => f.pathname === pathname || f.url === pathname)
+  
+  if (ownerId && fileToDelete?.ownerId !== ownerId) {
+    throw new Error("Unauthorized: You can only delete your own files.")
+  }
+
   files = files.filter((f) => f.pathname !== pathname && f.url !== pathname)
   await writeStore(files)
 }

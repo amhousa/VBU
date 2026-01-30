@@ -4,40 +4,65 @@
 
 @layer base {
   :root {
-    --background: 220 16% 22%;
-    --foreground: 218 27% 94%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --muted: 220 16% 36%;
-    --muted-foreground: 218 27% 80%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --accent: 193 43% 67%;
-    --accent-foreground: 220 16% 22%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --popover: 220 16% 22%;
-    --popover-foreground: 218 27% 94%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
 
-    --border: 220 16% 36%;
-    --input: 220 16% 36%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --card: 220 16% 22%;
-    --card-foreground: 218 27% 94%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --primary: 193 43% 67%;
-    --primary-foreground: 220 16% 22%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 220 16% 36%;
-    --secondary-foreground: 218 27% 94%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --destructive: 354 42% 56%;
-    --destructive-foreground: 218 27% 94%;
-
-    --ring: 193 43% 67%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
     --radius: 0.5rem;
+  }
 
-    /* Custom developer theme colors */
-    --code: 193 43% 67%;
-    --code-foreground: 220 16% 22%;
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -47,65 +72,59 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Image layer */
+  body.astronaut-bg::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background-image: url("/images/astronaut-bg.jpeg");
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
     background-repeat: no-repeat;
+    z-index: -20;
+    pointer-events: none;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-permanent-marker);
+  /* Overlay layer */
+  body.astronaut-bg::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.85); /* Light mode overlay */
+    z-index: -10;
+    pointer-events: none;
+    transition: background-color 0.3s ease;
   }
-}
 
-.file-drop-area {
-  @apply border-2 border-dashed rounded-lg p-12 transition-all backdrop-blur-sm bg-nord-0/70;
-}
-
-.file-drop-area.active {
-  @apply border-nord-8 bg-nord-10/30;
-}
-
-.terminal-header {
-  @apply flex items-center gap-2 px-4 py-2 bg-nord-0/90 rounded-t-lg border-b border-border;
-}
-
-.terminal-dot {
-  @apply w-3 h-3 rounded-full;
-}
-
-.terminal-body {
-  @apply bg-nord-0/90 p-4 rounded-b-lg font-mono text-sm;
-}
-
-.file-card {
-  @apply relative overflow-hidden transition-all hover:shadow-md backdrop-blur-sm bg-nord-0/70;
-}
-
-.file-card:hover .file-actions {
-  @apply opacity-100;
-}
-
-.file-actions {
-  @apply absolute top-0 right-0 opacity-0 transition-opacity;
-}
-
-.code-block {
-  @apply font-mono text-xs p-2 rounded bg-nord-0/90 overflow-x-auto;
-}
-
-/* Add a page overlay for better readability */
-.page-overlay {
-  @apply fixed inset-0 bg-gradient-to-br from-nord-0/80 to-nord-3/50 -z-10;
+  .dark body.astronaut-bg::after {
+    background-color: rgba(15, 23, 36, 0.85); /* Dark mode overlay with transparency */
+  }
 }
 
 .font-marker {
-  font-family: var(--font-permanent-marker);
+  font-family: "Permanent Marker", cursive;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 rounded-full hover:bg-primary/80 transition-colors;
 }

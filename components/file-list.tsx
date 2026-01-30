@@ -1,15 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Check } from "lucide-react"
-import { CustomCopyIcon } from "./custom-copy-icon"
-import { CustomDownloadIcon } from "./custom-download-icon"
-import { CustomTrashIcon } from "./custom-trash-icon"
+import { Check, Copy, Download, Trash2 } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
 import { FileDocumentIcon } from "./file-document-icon"
 import { useView } from "./ui/view-provider"
+import Image from "next/image"
 
 function isImage(filename: string) {
   const ext = filename.split('.').pop()?.toLowerCase() || ''
@@ -41,7 +39,7 @@ export function FileList({
 
   if (mode === 'list') {
     return (
-      <div className="flex flex-col divide-y divide-nord-3/50">
+      <div className="flex flex-col divide-y divide-border">
         {files.map((file) => (
           <div key={file.url} className="py-3">
             <FileItem url={file.url} filename={file.filename} onDelete={onDelete} category={file.category} />
@@ -110,20 +108,26 @@ export function FileList({
   const thumbSize = mode === 'compact' ? 28 : 80
 
   return (
-    <Card className={`file-card ${mode === 'compact' ? 'p-2' : ''}`}>
+    <Card className={`file-card ${mode === 'compact' ? 'p-2' : ''} overflow-hidden`}>
       <CardContent className={`p-4 ${mode === 'compact' ? 'py-2 px-3' : ''}`}>
         <div className={`flex items-center gap-3 ${mode === 'list' ? 'justify-between' : ''}`}>
-          <div className={`flex items-center gap-3 ${mode === 'list' ? 'flex-1' : ''}`}>
-            <div className={`rounded-lg bg-nord-2 flex items-center justify-center shadow-sm`} style={{ width: thumbSize, height: thumbSize }}>
+          <div className={`flex items-center gap-3 ${mode === 'list' ? 'flex-1 min-w-0' : 'min-w-0 flex-1'}`}>
+            <div className={`rounded-lg bg-muted flex items-center justify-center shadow-sm overflow-hidden relative shrink-0`} style={{ width: thumbSize, height: thumbSize }}>
               {image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={url} alt={filename} className="object-cover rounded" style={{ width: thumbSize, height: thumbSize }} />
+                <Image 
+                  src={url} 
+                  alt={filename} 
+                  fill
+                  className="object-cover"
+                  sizes={`${thumbSize}px`}
+                  loading="lazy"
+                />
               ) : (
-                <FileDocumentIcon className="h-6 w-6 text-nord-8" />
+                <FileDocumentIcon className="h-6 w-6 text-primary" />
               )}
             </div>
-            <div className={`overflow-hidden ${mode === 'compact' ? 'text-sm' : ''}`}>
-              <p className={`font-medium truncate ${mode === 'compact' ? 'text-sm' : ''}`} title={filename}>
+            <div className={`overflow-hidden flex-1 ${mode === 'compact' ? 'text-sm' : ''}`}>
+              <p className={`font-medium truncate ${mode === 'compact' ? 'text-sm' : ''} text-foreground`} title={filename}>
                 {filename}
               </p>
               {mode !== 'compact' && (
@@ -135,19 +139,19 @@ export function FileList({
           </div>
 
           {mode === 'list' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
                 onClick={copyToClipboard}
               >
-                {copied ? <Check className="h-4 w-4" /> : <CustomCopyIcon className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
                 onClick={async () => {
                   try {
                     window.open(url, "_blank")
@@ -157,15 +161,15 @@ export function FileList({
                   }
                 }}
               >
-                <CustomDownloadIcon className="h-4 w-4" />
+                <Download className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-nord-11 hover:text-nord-11 hover:bg-nord-2/50"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={handleDelete}
               >
-                <CustomTrashIcon className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -178,15 +182,15 @@ export function FileList({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={copyToClipboard}
             >
-              {copied ? <Check className="h-4 w-4" /> : <CustomCopyIcon className="h-4 w-4" />}
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 text-nord-6 hover:text-nord-8 hover:bg-nord-2/50"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={async () => {
                 try {
                   window.open(url, "_blank")
@@ -196,16 +200,16 @@ export function FileList({
                 }
               }}
             >
-              <CustomDownloadIcon className="h-4 w-4" />
+              <Download className="h-4 w-4" />
             </Button>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-2 text-nord-11 hover:text-nord-11 hover:bg-nord-2/50"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             onClick={handleDelete}
           >
-            <CustomTrashIcon className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </CardFooter>
       )}

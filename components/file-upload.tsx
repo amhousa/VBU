@@ -112,17 +112,6 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
   return (
     <Card className="w-full">
       <CardContent className="p-6 relative overflow-hidden bg-transparent backdrop-blur-sm">
-        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-20">
-          <svg width="300" height="300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M12 10V14M7.44712 3.42103C8.73941 2.52503 10.3084 2 12 2C16.4183 2 20 5.58172 20 10V11.2367M4.41632 7.44607C4.14633 8.24809 4 9.10696 4 10V14C4 17.6349 6.42416 20.7035 9.74396 21.6775M19.6588 16.3187C18.9294 18.7314 17.0911 20.6626 14.7367 21.5196M14.325 6.14635C13.6464 5.7361 12.8508 5.5 12 5.5C9.51472 5.5 7.5 7.51472 7.5 10V12.95M16.5 11.04V14C16.5 16.4853 14.4853 18.5 12 18.5C11.1514 18.5 10.3576 18.2651 9.68014 17.8567"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
         <div
           className={`file-drop-area ${isDragging ? "active" : ""} relative z-10`}
           onDragOver={handleDragOver}
@@ -131,15 +120,14 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         >
           {!selectedFile ? (
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-lg bg-nord-2 flex items-center justify-center mb-4 shadow-sm">
-                <DocumentAttachmentIcon className="h-8 w-8 text-nord-8" />
+              <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center mb-4 shadow-sm">
+                <DocumentAttachmentIcon className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-lg font-marker mb-2">Drag and drop your file here</h3>
               <p className="text-muted-foreground mb-4">or click to browse from your computer</p>
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-nord-0/70 hover:bg-nord-2/70 text-nord-6 border-nord-3"
               >
                 Browse Files
               </Button>
@@ -148,7 +136,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
           ) : (
             <div className="flex flex-col items-center justify-center">
               <div className="flex items-center gap-3 mb-4">
-                <FileTextIcon className="h-8 w-8 text-nord-8" />
+                <FileTextIcon className="h-8 w-8 text-primary" />
                 <div>
                   <p className="font-medium">{selectedFile.name}</p>
                   <p className="text-sm text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
@@ -164,13 +152,12 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <Button onClick={handleUpload} className="bg-nord-8 hover:bg-nord-7 text-nord-0">
+                  <Button onClick={handleUpload}>
                     Upload File
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleCancel}
-                    className="bg-nord-0/70 hover:bg-nord-2/70 text-nord-6 border-nord-3"
                   >
                     Cancel
                   </Button>

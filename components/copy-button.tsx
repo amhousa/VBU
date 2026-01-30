@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Check } from "lucide-react"
+import { Check, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { CustomCopyIcon } from "./custom-copy-icon"
 
 interface CopyButtonProps {
   text: string
@@ -24,7 +23,7 @@ export function CopyButton({ text }: CopyButtonProps) {
 
   return (
     <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={copyToClipboard}>
-      {copied ? <Check className="h-4 w-4" /> : <CustomCopyIcon className="h-4 w-4" />}
+      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       <span className="sr-only">Copy</span>
     </Button>
   )

@@ -1,19 +1,10 @@
 import type React from "react"
-import { Inter, Permanent_Marker } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 import { ViewProvider } from "@/components/ui/view-provider"
 
-const inter = Inter({ subsets: ["latin"] })
-const permanentMarker = Permanent_Marker({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-permanent-marker",
-  display: "swap",
-})
-
 export const metadata = {
-  title: "VBU (Verce Blob upload)",
+  title: "VBU (Vercel Blob upload)",
   description: "A file upload center built with Vercel Blob",
   icons: {
     icon: "/favicon.ico",
@@ -38,9 +29,12 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f1724" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/*<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Permanent+Marker&display=swap" rel="stylesheet" />*/}
       </head>
-      <body className={`${inter.className} ${permanentMarker.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
+      <body className={`antialiased min-h-screen bg-background font-sans`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange>
           <ViewProvider>
             {children}
           </ViewProvider>
