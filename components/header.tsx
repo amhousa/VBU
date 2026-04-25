@@ -1,6 +1,6 @@
 "use client"
 
-import { CloudIcon } from "./cloud-icon"
+import Image  from "next/image"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Moon, Sun, LayoutGrid, List, LayoutList, Rocket } from "lucide-react"
@@ -26,10 +26,10 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <CloudIcon className="h-6 w-6 text-primary" />
-            <span className="hidden font-bold sm:inline-block font-marker">
+            <Image src="./VBU.svg" alt="VBU Logo" width={48} height={48} className="text-primary" />
+            {/* <span className="hidden font-bold sm:inline-block font-marker">
               VBU
-            </span>
+            </span> */}
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">

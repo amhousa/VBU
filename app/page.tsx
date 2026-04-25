@@ -45,7 +45,17 @@ export default function Home() {
   const fetchFiles = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/list")
+      const token = typeof window !== "undefined" ? localStorage.getItem("vbu_token") : null
+      let url = "/api/list"
+      if (token) {
+        url += `?token=${encodeURIComponent(token)}`
+      }
+
+      const response = await fetch(url, {
+        headers: token ? {
+          "x-vbu-token": token,
+        } : {},
+      })
       const data = await response.json()
 
       if (data.files) {
@@ -53,7 +63,7 @@ export default function Home() {
           data.files.map((file: any) => ({
             url: file.url,
             filename: file.filename,
-            visibility: file.visibility,
+            visibility: file.access,
             category: file.category,
           })),
         )
@@ -93,7 +103,7 @@ export default function Home() {
             <section className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-marker flex items-center gap-2 text-foreground">
-                  <CloudUploadIcon className="h-6 w-6 text-primary" />
+                  {/* <CloudUploadIcon className="h-6 w-6 text-primary" /> */}
                   <span>Upload Files</span>
                 </h2>
                 <HelpButton />

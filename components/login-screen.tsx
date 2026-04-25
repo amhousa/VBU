@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Phone, ArrowRight } from "lucide-react"
+import { Mail, ArrowRight } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 
 interface LoginScreenProps {
@@ -13,21 +13,21 @@ interface LoginScreenProps {
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [otp, setOtp] = useState("")
-  const [step, setStep] = useState<"phone" | "otp">("phone")
+  const [email, setEmail] = useState("")
+  const [code, setCode] = useState("")
+  const [step, setStep] = useState<"email" | "code">("email")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Validate Iranian phone number format
-    const iranPhoneRegex = /^(\+98|0)?9\d{9}$/
-    if (!iranPhoneRegex.test(phoneNumber)) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
       toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid Iranian mobile number (e.g., 09123456789).",
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
         variant: "destructive",
       })
       setIsLoading(false)
@@ -38,19 +38,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: phoneNumber }),
+        body: JSON.stringify({ email }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to send code")
+        throw new Error(data.error || "Failed to send verification code")
       }
 
-      setStep("otp")
+      setStep("code")
       toast({
-        title: "OTP Sent",
-        description: "A verification code has been sent to your phone.",
+        title: "Code Sent",
+        description: "A verification code has been sent to your email.",
       })
     } catch (error: any) {
       toast({
@@ -63,7 +63,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
   }
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
@@ -71,7 +71,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       const response = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: phoneNumber, code: otp }),
+        body: JSON.stringify({ email, code }),
       })
 
       const data = await response.json()
@@ -80,7 +80,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         throw new Error(data.error || "Invalid code")
       }
 
-      localStorage.setItem("vbu_auth", "true")
+      // Store token and email in localStorage
+      localStorage.setItem("vbu_token", data.token)
+      localStorage.setItem("vbu_email", data.email)
+      
       onLogin()
       toast({
         title: "Login Successful",
@@ -102,26 +105,26 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center font-marker">Welcome to VBU</CardTitle>
         <CardDescription className="text-center">
-          {step === "phone" 
-            ? "Enter your mobile number to continue" 
-            : `Enter the code sent to ${phoneNumber}`}
+          {step === "email" 
+            ? "Enter your email to continue" 
+            : `Enter the code sent to ${email}`}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {step === "phone" ? (
-          <form onSubmit={handlePhoneSubmit} className="space-y-4">
+        {step === "email" ? (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Mobile Number</Label>
+              <Label htmlFor="email">Email Address</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="phone"
-                  placeholder="09123456789"
+                  id="email"
+                  placeholder="your@email.com"
                   className="pl-9"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  type="tel"
-                  autoComplete="tel"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -132,16 +135,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </Button>
           </form>
         ) : (
-          <form onSubmit={handleOtpSubmit} className="space-y-4">
+          <form onSubmit={handleCodeSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="otp">Verification Code</Label>
+              <Label htmlFor="code">Verification Code</Label>
               <Input
-                id="otp"
-                placeholder="12345"
+                id="code"
+                placeholder="000000"
                 className="text-center tracking-widest text-lg"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                maxLength={5}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                maxLength={6}
                 required
               />
             </div>
@@ -151,10 +154,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <Button 
               variant="ghost" 
               className="w-full" 
-              onClick={() => setStep("phone")}
+              onClick={() => setStep("email")}
               type="button"
             >
-              Change Number
+              Change Email
             </Button>
           </form>
         )}

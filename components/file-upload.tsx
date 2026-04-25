@@ -65,15 +65,21 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
     }, 100)
 
     try {
-      const formData = new FormData()
-      formData.append("file", selectedFile)
+      const params = new URLSearchParams()
+      params.set("filename", selectedFile.name)
 
-  const params = new URLSearchParams()
-  params.set("filename", selectedFile.name)
+      // Get token from localStorage if available
+      const token = typeof window !== "undefined" ? localStorage.getItem("vbu_token") : null
+      if (token) {
+        params.set("token", token)
+      }
 
       const response = await fetch(`/api/upload?${params.toString()}`, {
         method: "POST",
         body: selectedFile,
+        headers: token ? {
+          "x-vbu-token": token,
+        } : {},
       })
 
       clearInterval(progressInterval)
@@ -87,7 +93,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
 
       toast({
         title: "Upload successful",
-        description: "Your file has been uploaded successfully.",
+        description: `Your file has been uploaded successfully as ${data.access || "public"}.`,
       })
 
       onUploadComplete(data.url, selectedFile.name)

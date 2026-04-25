@@ -5,9 +5,11 @@ import { Check, Copy, Download, Trash2 } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
+
 import { FileDocumentIcon } from "./file-document-icon"
 import { useView } from "./ui/view-provider"
 import Image from "next/image"
+import { CloudIcon } from "./cloud-icon"
 
 function isImage(filename: string) {
   const ext = filename.split('.').pop()?.toLowerCase() || ''
@@ -29,13 +31,9 @@ export function FileList({
 }) {
   const { mode } = useView()
 
-  if (files.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No files uploaded yet</p>
-      </div>
-    )
-  }
+
+  // Always show upload box if no files, do not show 'No files found' message
+  // (Upload box logic is handled in page.tsx)
 
   if (mode === 'list') {
     return (
@@ -58,6 +56,7 @@ export function FileList({
         <FileItem key={file.url} url={file.url} filename={file.filename} onDelete={onDelete} category={file.category} />
       ))}
     </div>
+
   )
 }
         function FileItem({ url, filename, onDelete, visibility, category, shared }: FileItemProps & { visibility?: string; category?: string; shared?: boolean }) {
@@ -79,13 +78,22 @@ export function FileList({
 
   const handleDelete = async () => {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("vbu_token") : null
       let deleteUrl = `/api/delete?url=${encodeURIComponent(url)}`
+      if (token) {
+        deleteUrl += `&token=${encodeURIComponent(token)}`
+      }
+
       const response = await fetch(deleteUrl, {
         method: "DELETE",
+        headers: token ? {
+          "x-vbu-token": token,
+        } : {},
       })
 
       if (!response.ok) {
-        throw new Error("Failed to delete file")
+        const data = await response.json()
+        throw new Error(data.error || "Failed to delete file")
       }
 
       onDelete(url)
@@ -93,16 +101,26 @@ export function FileList({
         title: "File deleted",
         description: "The file has been deleted successfully.",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error("Delete error:", error)
       toast({
         title: "Delete failed",
-        description: "There was an error deleting your file.",
+        description: error.message || "There was an error deleting your file.",
         variant: "destructive",
       })
     }
   }
-  const { mode } = useView()
+
+  // Lock view tab look and space theme for logged-in users
+  const { mode, setMode, showAstronaut, setShowAstronaut } = useView()
+  // Lock to grid mode and space theme if logged in
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("vbu_token")
+    if (token) {
+      if (mode !== "grid") setMode("grid")
+      if (!showAstronaut) setShowAstronaut(true)
+    }
+  }
 
   const image = isImage(filename)
   const thumbSize = mode === 'compact' ? 28 : 80

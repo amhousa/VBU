@@ -2,7 +2,7 @@ import { put } from "@vercel/blob"
 import { NextResponse } from "next/server"
 import fileStore from "@/lib/file-store"
 import virusScan from "@/lib/virus-scan"
-import fs from "fs/promises"
+import { validateToken } from "@/lib/auth"
 
 function categoryFromFilename(filename: string) {
   const ext = filename.split(".").pop()?.toLowerCase() || ""
@@ -24,16 +24,36 @@ function categoryFromFilename(filename: string) {
 export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url)
   const filename = searchParams.get("filename") || "file"
-  // uploads are always public links; visibility removed
+  const token = request.headers.get("x-vbu-token") || searchParams.get("token")
 
   try {
+    // Read the request body
+    const buffer = await request.arrayBuffer()
+    if (buffer.byteLength === 0) {
+      return NextResponse.json({ error: "File is empty" }, { status: 400 })
+    }
+
+    // Validate token and get user email
+    const { isValid, email } = await validateToken(token)
+    
+    // Determine access level: private for authenticated users, public for guests
+    const access: "private" | "public" = isValid ? "private" : "public"
+    const ownerId = isValid && email ? email : "guest"
+
     const category = categoryFromFilename(filename)
 
     // Generate a unique filename under category folder to avoid collisions
-    const uniqueFilename = `${category}/${Date.now()}-${filename}`
+    // For authenticated users, use a safe identifier instead of email (which contains special chars)
+    const safeEmail = isValid && email ? email.replace(/[^a-z0-9._-]/gi, "_") : null
+    const uniqueFilename = safeEmail
+      ? `${safeEmail}/${category}/${Date.now()}-${filename}`
+      : `public/${category}/${Date.now()}-${filename}`
 
-    // Upload to Vercel Blob. Upload first, then download and scan the saved blob.
-    const blob = await put(uniqueFilename, request.body as any, { access: "public" } as any)
+    console.log("Uploading file:", { filename, access, ownerId, uniqueFilename })
+
+    // Upload to Vercel Blob with appropriate access level
+    // Note: Vercel Blob only supports public URLs. Access control is managed at the API level.
+    const blob = await put(uniqueFilename, buffer, { access: "public" })
 
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -46,7 +66,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       size: (blob as any).size,
       uploadedAt: (blob as any).uploadedAt || new Date().toISOString(),
       category,
-      // no visibility/share fields — public link only
+      access,
+      ownerId,
     }
 
     // Persist metadata in local JSON store
@@ -85,10 +106,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       contentType: (blob as any).contentType,
       size: (blob as any).size,
       category,
+      access,
     })
   } catch (error) {
     console.error("Upload error:", error)
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error("Error details:", errorMessage)
+    return NextResponse.json({ error: "Failed to upload file", details: errorMessage }, { status: 500 })
   }
 }
 
